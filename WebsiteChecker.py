@@ -103,7 +103,7 @@ class WebsiteChecker:
 		
 		if check_url_spelling(url) == null:
 			print url + " does not pass the spelling check"
-			return
+			return false
 		
 		(timestamp, http_response_time, status_code_returned, downloaded_content) = get_curl_result(url)
 		
