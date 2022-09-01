@@ -4,6 +4,9 @@ import mysql.connector
 #to print datetime to console
 from datetime import datetime
 
+#for unittesting
+import unittest
+
 class WebsiteChecker:
 	
 	#
@@ -98,12 +101,13 @@ class WebsiteChecker:
 	# otherwise return false
 	def download_website_stats(url, download_content):
 		
-		# TODO: check url probably here
 		if check_url_spelling(url) == null:
 			print url + " does not pass the spelling check"
 			return
 		
-		(timestamp, http_response_time, status_code_returned) = get_curl_result(url)
+		(timestamp, http_response_time, status_code_returned, downloaded_content) = get_curl_result(url)
+		
+		website_id = retrieve_url_id_in_websites_list(url)
 		
 		# TODO: add exceptions
 		# write result into website_stats database
@@ -136,18 +140,35 @@ class WebsiteChecker:
 		for website in websites_list:
 			download_website_stats(website[0], website[2])
 		
-		#
-		#TODO: put the process of the downloading to crontab
-		#
-	}
+
+class TestWebChecker(unittest.TestCase):
 	
 	#
 	# write tests here
 	#
 	
-	...
-	...
-	...
+	def test_download_website_stats_google(self):
+		websitechecker = WebsiteChecker(["google.com", 500, 0])
+		self.assertEqual(websitechecker.download_website_stats(), true)
+	
+	def test_download_website_stats_localhost(self):
+		websitechecker = WebsiteChecker(["localhost", 300, 1])
+		self.assertEqual(websitechecker.download_website_stats(), true)
+	
+	# TODO: or may be this one should return exception
+	def test_download_website_stats_broken_url_format(self):
+		websitechecker = WebsiteChecker(["localhost.", 30, 0])
+		self.assertEqual(websitechecker.download_website_stats(), false)
+	
+	def test_download_website_stats_broken_url(self):
+		websitechecker = WebsiteChecker(["https://console.aiven.io/signup.html", 60, 1])
+		self.assertEqual(websitechecker.download_website_stats(), true)
+	
+	#
+	# verify that the entry has been inserted in the database
+	#
+	
+	
 
-}
+
 
