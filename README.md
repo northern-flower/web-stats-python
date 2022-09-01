@@ -7,11 +7,10 @@ response time, status code returned, as well as optionally checking the returned
 page contents for a regexp pattern that is expected to be found on the page.
 
 
-Q: is page content established for all the websites or can be 0 for 1 website and 1 for another
-
-
 Things to consider:
 
+
+Q: is page content established for all the websites or can be 0 for 1 website and 1 for another (actually i considered that there could be different 'frequency' and 'downloaded_content' options for every website)
 - how many websites to store (if many - consider distributed system and hash)
 - for how long the stats should be kept (if for too long - consider distributed system as well, automatic archiving, etc)
 - at which frequency to check whether the website is up or down (and not be blacklisted) - may be put it as a parameter
@@ -28,20 +27,19 @@ Ping is fast operation. Optionally we would like to get the content of the websi
 
 Database structure:
 
-website:
-- id - integer
+websites:
+- website_id - integer, autoincrement
 - primary_url - varchar(256) - limit url length to avoid crawler trap
 
 website_stats:
 - website_id - integer
 - timestamp - timestamp
-- HTTP response time (ms) - integer
-- status code returned - integer, probably with constraints (404, 423, ... <1000?)
-- (optionally checking) the returned page contents for a regexp pattern that is expected to be found on the page - BLOB - this is huge (may be put in another database indeed)
+- http_response_time (ms) - integer
+- status_code_returned - integer, probably with constraints (404, 423, ... <1000?)
 
 website_content:
 - website_id - integer
 - timestamp - timestamp
-- downloaded_page (content) - BLOB
+- downloaded_content - BLOB
 
 
