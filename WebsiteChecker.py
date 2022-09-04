@@ -162,7 +162,7 @@ class WebsiteChecker:
 		while True:
 			try:
 				time.sleep(frequency)
-				
+				download_website_stats(url, frequency, download_content)
 			except Exception as e:
 				print('*download_website_stats_periodically* failed %s ' % (str(e)))
 			pass
