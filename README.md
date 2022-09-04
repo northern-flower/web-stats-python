@@ -16,7 +16,7 @@ Things to consider:
 - at which frequency to check whether the website is up or down (and not be blacklisted) - may be put it as a parameter
 
 - how to test your code - if the website is down or not (the testing website can also be unexpectedly down or up)
-- you may not have a right to access the websiite ..
+- you may not have a right to access the website ..
 
 Simple algorithm to use that comes immediately to my mind:
 - ping to check if that website is alive (ideally 2 sources minimum should confirm that)
