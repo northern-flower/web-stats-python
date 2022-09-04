@@ -4,6 +4,9 @@ import mysql.connector
 #to print datetime to console
 from datetime import datetime
 
+#to use ping response automatically
+from ping3 import ping
+
 #for unittesting
 import unittest
 
@@ -12,7 +15,7 @@ class WebsiteChecker:
 	#
 	# constuctor with arguments
 	#
-	# websites - list of lists (website, frequency (in s), download_content (0 or 1))
+	# websites - list of lists (website, frequency (in ms), download_content (0 or 1))
 	# [['google.com', 300, 0], ['localhost', 600, 0]]
 	# connection - database connection
 	
@@ -42,13 +45,16 @@ class WebsiteChecker:
 	#
 	# check_ping
 	#
-	# return 0 if website is alive
-	# otherwise return something else
-	# TODO: control Exception here, limit the time for it
-	# https://stackoverflow.com/questions/26468640/python-function-to-test-ping
-	def check_ping(url):
-		response = os.system("ping -c 1 " + url)
-		return response
+	# return 'http_response_time' if website is alive
+	# otherwise return 'None' (timeout)
+	# https://github.com/kyan001/ping3
+	def check_ping(url, frequency):
+		
+		# we may assume that timeout can be equal to frequency
+		# because we can't obtain the response within frequency parameter
+		# then we should not save it
+		http_response_time = ping(url, unit='ms', timeout=frequency*1000)
+		return http_response_time
 	
 	#
 	# get_curl_results
@@ -57,13 +63,18 @@ class WebsiteChecker:
 	# otherwise return something else
 	# TODO: control Exception here, limit the time for it
 	# TODO: refine curl (with options)
-	def get_curl_results(url, download_content):
-		if download_content == 1:
-			response = os.system("curl " + url)
-		else
-			response = os.system("curl " + url)
+	def get_curl_results(url, frequency, download_content):
 		
-		return (timestamp, http_response_time, status_code_returned, downloaded_content)
+		timestamp = datetime.datetime.now().timestamp()
+		
+		# TODO: make timestamp, status_code_returned and download_content in one call
+		status_code_returned = os.system("curl -I --connect-timeout "+ frequency + " --silent " + url + " | head -n 1 | awk -F' ' '{print $2}'")
+		
+		if download_content == 1:
+			downloaded_content = os.system("curl " + url)
+		
+		# TODO: transform response to (timestamp, status_code_returned, downloaded_content)
+		return (timestamp, status_code_returned, downloaded_content)
 	
 	#
 	# retrieve_url_id_in_websites_list
@@ -88,6 +99,7 @@ class WebsiteChecker:
 			
 			url_id = self.connection.lastrowid
 		elif self.cursor.rowcount != 1:
+			# TODO: possibly create a logger and log things there
 			print ("Problem while extracting id of url " + url + ": double insertion found")
 		else:
 			url_id = records[0]
@@ -99,13 +111,15 @@ class WebsiteChecker:
 	#
 	# return true if it was succeful
 	# otherwise return false
-	def download_website_stats(url, download_content):
+	def download_website_stats(url, frequency, download_content):
 		
 		if check_url_spelling(url) == null:
 			print url + " does not pass the spelling check"
 			return false
 		
-		(timestamp, http_response_time, status_code_returned, downloaded_content) = get_curl_result(url)
+		http_response_time = check_ping(url, frequency)
+		
+		(timestamp, status_code_returned, downloaded_content) = get_curl_result(url)
 		
 		website_id = retrieve_url_id_in_websites_list(url)
 		
@@ -135,40 +149,125 @@ class WebsiteChecker:
 	#
 	# download_stats_for_multiple_websites
 	#
-	def download_stats_for_multiple_websites() {
+	def download_stats_for_multiple_websites():
 		
 		for website in websites_list:
-			download_website_stats(website[0], website[2])
-		
+			download_website_stats(website[0], website[1], website[2])
 
-class TestWebChecker(unittest.TestCase):
+	#
+	# check website status periodically
+	#
+	def download_website_stats_periodically(url, frequency, download_content):
+	
+		while True:
+			try:
+				time.sleep(SLEEP_INTERVAL)
+				
+			except Exception as e:
+				print('*download_website_stats_periodically* failed %s ' % (str(e)))
+			pass
+	
+	# TODO: think about how to stop checks (after some time)
+
+
+class TestWebChecker(unittest.TestCase) {
 	
 	#
 	# write tests here
 	#
 	
+	def _init_(self):
+		#TODO: initialise connection
+	
 	def test_download_website_stats_google(self):
-		websitechecker = WebsiteChecker(["google.com", 500, 0])
+		websitechecker = WebsiteChecker(["google.com", 500, 0], connection)
 		self.assertEqual(websitechecker.download_website_stats(), true)
 	
 	def test_download_website_stats_localhost(self):
-		websitechecker = WebsiteChecker(["localhost", 300, 1])
+		websitechecker = WebsiteChecker(["localhost", 300, 1], connection)
 		self.assertEqual(websitechecker.download_website_stats(), true)
 	
 	# TODO: or may be this one should return exception
 	def test_download_website_stats_broken_url_format(self):
-		websitechecker = WebsiteChecker(["localhost.", 30, 0])
+		websitechecker = WebsiteChecker(["localhost.", 30, 0], connection)
 		self.assertEqual(websitechecker.download_website_stats(), false)
 	
 	def test_download_website_stats_broken_url(self):
-		websitechecker = WebsiteChecker(["https://console.aiven.io/signup.html", 60, 1])
+		websitechecker = WebsiteChecker(["https://console.aiven.io/signup.html", 60, 1], connection)
 		self.assertEqual(websitechecker.download_website_stats(), true)
-	
-	#
-	# verify that the entry has been inserted in the database
-	#
-	
-	
+
+}
 
 
+#
+# verify that the entry has been inserted in the database
+#
+#https://medium.com/swlh/python-testing-with-a-mock-database-sql-68f676562461
 
+
+#Database structure:
+
+#websites:
+#- website_id - integer, autoincrement
+#- primary_url - varchar(256) - limit url length to avoid crawler trap
+
+#website_stats:
+#- website_id - integer, FK to websites->website_id
+#- timestamp - timestamp
+#- http_response_time (ms) - integer
+#- status_code_returned - integer, probably with constraints (100-600)
+
+#website_content:
+#- website_id - integer, FK to websites->website_id
+#- timestamp - timestamp
+#- downloaded_content - BLOB
+
+
+from mock_db import MockDB
+from mock import patch
+import utils
+
+class TestUtils(MockDB):
+	
+	def test_db_websites_insert(self):
+		with self.mock_db_config:
+			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+                            ('https://github.com/')"""), True)
+	
+	def test_db_websites_delete(self):
+		with self.mock_db_config:
+			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
+                            ('https://github.com/')"""), True)
+	
+    def test_db_websites_insert_and_delete(self):
+        with self.mock_db_config:
+			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+                            ('https://github.com/')"""), True)
+            
+			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+                            ('https://github.com/')"""), False)
+			
+			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
+                            ('https://github.com/')"""), True)
+            
+			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
+                            ('https://github.com/')"""), False)
+			
+			
+	# TODO: there will be similar tests for 'website_stats' and 'website_content'
+	# TODO: for 'website_content' it would make sense to verify timeout while writing to the database			
+			
+			
+#
+# other test ideas
+#
+# verify if there is an infinite loop
+# how many insertions in the database have been made during a certain time
+#
+
+
+#
+# other thoughts
+# later i have found ideas about concurrent reading of the status of website
+# i guess it would make sense for a high frequency reading
+#
