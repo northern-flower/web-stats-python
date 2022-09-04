@@ -25,6 +25,7 @@ class WebsiteChecker:
 		self.cursor = self.connection.cursor()
 		
 	#TODO: create a separate class for SQL connection
+	#TODO: also create a logger!
 	#mydb = mysql.connector.connect(
 	#  host="localhost",
 	#  user="yourusername",
@@ -99,7 +100,6 @@ class WebsiteChecker:
 			
 			url_id = self.connection.lastrowid
 		elif self.cursor.rowcount != 1:
-			# TODO: possibly create a logger and log things there
 			print ("Problem while extracting id of url " + url + ": double insertion found")
 		else:
 			url_id = records[0]
@@ -161,7 +161,7 @@ class WebsiteChecker:
 	
 		while True:
 			try:
-				time.sleep(SLEEP_INTERVAL)
+				time.sleep(frequency)
 				
 			except Exception as e:
 				print('*download_website_stats_periodically* failed %s ' % (str(e)))
@@ -169,12 +169,10 @@ class WebsiteChecker:
 	
 	# TODO: think about how to stop checks (after some time)
 
-
+# TODO: separate TestWebChecker and WebChecker in 2 files
+# I am writing it here to follow what the code is doing
+# and how database is organised
 class TestWebChecker(unittest.TestCase) {
-	
-	#
-	# write tests here
-	#
 	
 	def _init_(self):
 		#TODO: initialise connection
@@ -202,32 +200,14 @@ class TestWebChecker(unittest.TestCase) {
 #
 # verify that the entry has been inserted in the database
 #
-#https://medium.com/swlh/python-testing-with-a-mock-database-sql-68f676562461
-
-
-#Database structure:
-
-#websites:
-#- website_id - integer, autoincrement
-#- primary_url - varchar(256) - limit url length to avoid crawler trap
-
-#website_stats:
-#- website_id - integer, FK to websites->website_id
-#- timestamp - timestamp
-#- http_response_time (ms) - integer
-#- status_code_returned - integer, probably with constraints (100-600)
-
-#website_content:
-#- website_id - integer, FK to websites->website_id
-#- timestamp - timestamp
-#- downloaded_content - BLOB
-
+# https://medium.com/swlh/python-testing-with-a-mock-database-sql-68f676562461
+#
 
 from mock_db import MockDB
 from mock import patch
 import utils
 
-class TestUtils(MockDB):
+class TestWebCheckerDatabase(MockDB):
 	
 	def test_db_websites_insert(self):
 		with self.mock_db_config:
@@ -253,7 +233,6 @@ class TestUtils(MockDB):
 			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
                             ('https://github.com/')"""), False)
 			
-			
 	# TODO: there will be similar tests for 'website_stats' and 'website_content'
 	# TODO: for 'website_content' it would make sense to verify timeout while writing to the database			
 			
@@ -261,8 +240,8 @@ class TestUtils(MockDB):
 #
 # other test ideas
 #
-# verify if there is an infinite loop
-# how many insertions in the database have been made during a certain time
+# - verify if there is an infinite loop
+# - measure how many insertions in the database have been made during a certain time
 #
 
 
