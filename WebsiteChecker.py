@@ -52,7 +52,7 @@ class WebsiteChecker:
 	def check_ping(url, frequency):
 		
 		# we may assume that timeout can be equal to frequency
-		# because we can't obtain the response within frequency parameter
+		# because if we can't obtain the response within frequency parameter
 		# then we should not save it
 		http_response_time = ping(url, unit='ms', timeout=frequency*1000)
 		return http_response_time
