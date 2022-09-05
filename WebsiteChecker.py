@@ -7,32 +7,32 @@ from datetime import datetime
 #to use ping response automatically
 from ping3 import ping
 
-#
-#this class allows to periodically collect the statistics about 1 or multiple websites
-#including http response time, status code and (optionally) the content of primary url
-#
-
-#
-#TODO: create a separate class for SQL connection - or consider that it already exists
-#TODO: also create a logger class - or consider that it already exists
-#
+#for logging
+import logging
 
 class WebsiteChecker:
 	
 	#
 	# constuctor with arguments
 	#
+	# incoming parameters:
 	# websites - list of lists (website, frequency (in ms), download_content (0 or 1))
-	# [['google.com', 300, 0], ['localhost', 600, 0]]
+	# for example - [['google.com', 300, 0], ['localhost', 600, 0]]
 	# connection - database connection
-	
-	def _init_(self, websites_list = [], connection):
+	#
+	# logger field will be created in the constructor
+	# in this exercise for simplicity we would consider that class Connection already exists
+	def _init_(self, websites_list = [][], connection):
 		self.websites_list = websites_list.view()
 		self.connection = connection
-		self.cursor = self.connection.cursor()	
+		self.cursor = self.connection.cursor()
+		self.logger = logging.getLogger()
 	
 	#
 	# check_url_spelling
+	#
+	# incoming parameters:
+	# url - website url, string
 	#
 	# return URL if it is well formatted
 	# return NULL if not
@@ -43,6 +43,10 @@ class WebsiteChecker:
 	
 	#
 	# check_ping
+	#
+	# incoming parameters:
+	# url - website url, string
+	# frequency - frequency of downloading, in ms, needed here for timeout configuring
 	#
 	# return 'http_response_time' if website is alive
 	# otherwise return 'None' (timeout)
@@ -58,10 +62,12 @@ class WebsiteChecker:
 	#
 	# get_curl_results
 	#
+	# incoming parameters:
+	# url - website url, string
+	# frequency - frequency of downloading, in ms, needed here for timeout configuring
+	# download_content - option to say if the content of the url should be downloaded or not (can be 0 or 1)
+	#
 	# return tuple (timestamp, status_code_returned, downloaded_content)
-	# otherwise return something else
-	# TODO: control Exception here, limit the time for it
-	# TODO: refine curl (with options)
 	def get_curl_results(url, frequency, download_content):
 		
 		timestamp = datetime.datetime.now().timestamp()
@@ -72,16 +78,19 @@ class WebsiteChecker:
 		if download_content == 1:
 			downloaded_content = os.system("curl " + url)
 		
-		# TODO: transform response to (timestamp, status_code_returned, downloaded_content)
 		return (timestamp, status_code_returned, downloaded_content)
 	
 	#
 	# retrieve_url_id_in_websites_list
 	#
+	# incoming parameters:
+	# url - website url, string
+	#
 	# return URL_ID if url exists in URL FRONTIER (i.e. website list)
 	# if it doesn't exist - create it and return URL_ID
 	def retrieve_url_id_in_websites_list(url):
 		
+		# find if url already exists in the database of urls
 		# TODO: add exceptions
 		sql_select = "SELECT website_id from websites where primary_url = %s"
 		tuple = (url)
@@ -89,8 +98,8 @@ class WebsiteChecker:
 		records = self.cursor.fetchall()
 		
 		if self.cursor.rowcount == 0:
-			# TODO: add exceptions
 			# write new url_id into the database
+			# TODO: add exceptions
 			sql_insert = "INSERT INTO websites (primary_url) VALUES (%s)"
 			tuple = (url)
 			self.cursor.execute(sql_insert, tuple)
@@ -98,7 +107,7 @@ class WebsiteChecker:
 			
 			url_id = self.connection.lastrowid
 		elif self.cursor.rowcount != 1:
-			print ("Problem while extracting id of url " + url + ": double insertion found")
+			logger.error("Problem while extracting id of url " + url + ": double insertion found")
 		else:
 			url_id = records[0]
 			
@@ -107,12 +116,17 @@ class WebsiteChecker:
 	#
 	# download_website_stats
 	#
+	# incoming parameters:
+	# url - website url, string
+	# frequency - frequency of downloading, in ms, needed here for timeout configuring
+	# download_content - option to say if the content of the url should be downloaded or not (can be 0 or 1)
+	#
 	# return TRUE if it was succesful
 	# otherwise return FALSE
 	def download_website_stats(url, frequency, download_content):
 		
 		if check_url_spelling(url) == null:
-			print url + " does not pass the spelling check"
+			logger.warning(url + " does not pass the spelling check")
 			return false
 		
 		http_response_time = check_ping(url, frequency)
@@ -121,18 +135,17 @@ class WebsiteChecker:
 		
 		website_id = retrieve_url_id_in_websites_list(url)
 		
-		# TODO: add exceptions
 		# write result into website_stats database
-		
+		# TODO: add exceptions
 		sql_insert = "INSERT INTO website_stats (website_id, timestamp, http_response_time, status_code_returned) VALUES (%s, %s, %s, %s)"
 		tuple = (website_id, timestamp, http_response_time, status_code_returned)
 		self.cursor.execute(sql_insert, tuple)
 		self.connection.commit()
 
-		print("Stats for "+ url + " have been inserted at " + datetime.fromtimestamp(timestamp))
+		logger.info("Stats for "+ url + " have been inserted at " + datetime.fromtimestamp(timestamp))
 		
-		# TODO: add exceptions
 		# write result into website_content database
+		# TODO: add exceptions
 		if download_content:
 		
 			sql_insert = "INSERT INTO website_content (website_id, timestamp, downloaded_content) VALUES (%s, %s, %s)"
@@ -140,7 +153,7 @@ class WebsiteChecker:
 			self.cursor.execute(sql_insert, tuple)
 			self.connection.commit()
 
-			print("Content for "+ url + " has been downloaded at " + datetime.fromtimestamp(timestamp))
+			logger.info("Content for "+ url + " has been downloaded at " + datetime.fromtimestamp(timestamp))
 			
 		return true
 	
@@ -162,7 +175,7 @@ class WebsiteChecker:
 				time.sleep(frequency)
 				download_website_stats(url, frequency, download_content)
 			except Exception as e:
-				print('*download_website_stats_periodically* failed %s ' % (str(e)))
+				logger.error('*download_website_stats_periodically* failed %s ' % (str(e)))
 			pass
 	
 	# def download_website_stats_periodically_start(url, frequency, download_content)
@@ -179,3 +192,5 @@ class WebsiteChecker:
 # later i have found ideas about concurrent reading of the status of website
 # i guess it would make sense for a high frequency reading
 #
+
+
