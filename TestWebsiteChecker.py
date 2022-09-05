@@ -1,7 +1,9 @@
 #for unittesting
 import unittest
 
-class TestWebChecker(unittest.TestCase) {
+#TODO: to merge TestWebsiteChecker and TestWebsiteCheckerDatabase
+
+class TestWebsiteChecker(unittest.TestCase) {
 	
 	def _init_(self):
 		#TODO: initialise connection
@@ -36,31 +38,31 @@ from mock_db import MockDB
 from mock import patch
 import utils
 
-class TestWebCheckerDatabase(MockDB):
+class TestWebsiteCheckerDatabase(MockDB):
 	
-	def test_db_websites_insert(self):
-		with self.mock_db_config:
-			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), True)
+    def test_db_websites_insert(self):
+	with self.mock_db_config:
+		self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+                	('https://github.com/')"""), True)
 	
-	def test_db_websites_delete(self):
-		with self.mock_db_config:
-			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), True)
+    def test_db_websites_delete(self):
+	with self.mock_db_config:
+		self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
+                	('https://github.com/')"""), True)
 	
     def test_db_websites_insert_and_delete(self):
         with self.mock_db_config:
-			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), True)
+		self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+                	('https://github.com/')"""), True)
             
-			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), False)
+		self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+                        ('https://github.com/')"""), False)
 			
-			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), True)
+		self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
+                        ('https://github.com/')"""), True)
             
-			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), False)
+		self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
+                	('https://github.com/')"""), False)
 			
 			
 	# TODO: there will be similar tests for 'website_stats' and 'website_content'
