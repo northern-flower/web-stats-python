@@ -162,7 +162,7 @@ class WebsiteChecker:
 	#
 	def download_stats_for_multiple_websites():
 		
-		for website in websites_list:
+		for website in self.websites_list:
 			download_website_stats(website[0], website[1], website[2])
 
 	#
