@@ -1,6 +1,9 @@
 #for unittesting
 import unittest
 
+#import class to test
+import WebsiteChecker
+
 #TODO: to merge TestWebsiteChecker and TestWebsiteCheckerDatabase
 
 class TestWebsiteChecker(unittest.TestCase) {
