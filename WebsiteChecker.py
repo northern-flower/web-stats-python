@@ -7,8 +7,15 @@ from datetime import datetime
 #to use ping response automatically
 from ping3 import ping
 
-#for unittesting
-import unittest
+#
+#this class allows to periodically collect the statistics about 1 or multiple websites
+#including http response time, status code and (optionally) the content of primary url
+#
+
+#
+#TODO: create a separate class for SQL connection - or consider that it already exists
+#TODO: also create a logger class - or consider that it already exists
+#
 
 class WebsiteChecker:
 	
@@ -22,16 +29,7 @@ class WebsiteChecker:
 	def _init_(self, websites_list = [], connection):
 		self.websites_list = websites_list.view()
 		self.connection = connection
-		self.cursor = self.connection.cursor()
-		
-	#TODO: create a separate class for SQL connection
-	#TODO: also create a logger!
-	#mydb = mysql.connector.connect(
-	#  host="localhost",
-	#  user="yourusername",
-	#  password="yourpassword",
-	#  database="mydatabase"
-	#)	
+		self.cursor = self.connection.cursor()	
 	
 	#
 	# check_url_spelling
@@ -60,7 +58,7 @@ class WebsiteChecker:
 	#
 	# get_curl_results
 	#
-	# return tuple (timestamp, http_response_time, status_code_returned, downloaded_content)
+	# return tuple (timestamp, status_code_returned, downloaded_content)
 	# otherwise return something else
 	# TODO: control Exception here, limit the time for it
 	# TODO: refine curl (with options)
@@ -109,8 +107,8 @@ class WebsiteChecker:
 	#
 	# download_website_stats
 	#
-	# return true if it was succeful
-	# otherwise return false
+	# return TRUE if it was succesful
+	# otherwise return FALSE
 	def download_website_stats(url, frequency, download_content):
 		
 		if check_url_spelling(url) == null:
@@ -167,83 +165,14 @@ class WebsiteChecker:
 				print('*download_website_stats_periodically* failed %s ' % (str(e)))
 			pass
 	
-	# TODO: think about how to stop checks (after some time)
-
-# TODO: separate TestWebChecker and WebChecker in 2 files
-# I am writing it here to follow what the code is doing
-# and how database is organised
-class TestWebChecker(unittest.TestCase) {
+	# def download_website_stats_periodically_start(url, frequency, download_content)
+	# TODO: ADD corresponding crontab for this url based on frequency
 	
-	def _init_(self):
-		#TODO: initialise connection
+	# def download_website_stats_periodically_update(url, frequency, download_content)
+	# TODO: UPDATE corresponding crontab for this url based on frequency
 	
-	def test_download_website_stats_google(self):
-		websitechecker = WebsiteChecker(["google.com", 500, 0], connection)
-		self.assertEqual(websitechecker.download_website_stats(), true)
-	
-	def test_download_website_stats_localhost(self):
-		websitechecker = WebsiteChecker(["localhost", 300, 1], connection)
-		self.assertEqual(websitechecker.download_website_stats(), true)
-	
-	# TODO: or may be this one should return exception
-	def test_download_website_stats_broken_url_format(self):
-		websitechecker = WebsiteChecker(["localhost.", 30, 0], connection)
-		self.assertEqual(websitechecker.download_website_stats(), false)
-	
-	def test_download_website_stats_broken_url(self):
-		websitechecker = WebsiteChecker(["https://console.aiven.io/signup.html", 60, 1], connection)
-		self.assertEqual(websitechecker.download_website_stats(), true)
-
-}
-
-
-#
-# verify that the entry has been inserted in the database
-#
-# https://medium.com/swlh/python-testing-with-a-mock-database-sql-68f676562461
-#
-
-from mock_db import MockDB
-from mock import patch
-import utils
-
-class TestWebCheckerDatabase(MockDB):
-	
-	def test_db_websites_insert(self):
-		with self.mock_db_config:
-			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), True)
-	
-	def test_db_websites_delete(self):
-		with self.mock_db_config:
-			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), True)
-	
-    def test_db_websites_insert_and_delete(self):
-        with self.mock_db_config:
-			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), True)
-            
-			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), False)
-			
-			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), True)
-            
-			self.assertEqual(utils.db_write("""DELETE FROM `websites` (`primary_url`) VALUES
-                            ('https://github.com/')"""), False)
-			
-	# TODO: there will be similar tests for 'website_stats' and 'website_content'
-	# TODO: for 'website_content' it would make sense to verify timeout while writing to the database			
-			
-			
-#
-# other test ideas
-#
-# - verify if there is an infinite loop
-# - measure how many insertions in the database have been made during a certain time
-#
-
+	# def download_website_stats_periodically_stop(url, frequency, download_content)
+	# TODO: REMOVE corresponding crontab for this url based on frequency
 
 #
 # other thoughts
