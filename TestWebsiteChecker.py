@@ -21,7 +21,7 @@ class TestWebChecker(unittest.TestCase) {
     def test_url_spelling_true_simple_url():
         self.assertEqual(wbutils.check_url_spelling("google.com"), true, "google.com should be a valid url")
     
-    def test_url_spelling_true_simple_url_with_www):
+    def test_url_spelling_true_simple_url_with_www():
         self.assertEqual(wbutils.check_url_spelling("www.goOgle.de"), true, "www.goOgle.de should be a valid url")
     
     def test_url_spelling_true_simple_url_with_http():
