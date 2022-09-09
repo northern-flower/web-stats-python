@@ -1,34 +1,23 @@
-#for connection class
-import mysql.connector
-
 #to print datetime to console
 from datetime import datetime
 
 #to use ping response automatically
 from ping3 import ping
 
-#for logging
-import logging
+#WebsiteCheckerUtils is a helper class created
+#so that we do not have to create an instance of the class WebsiteChecker
+#every time that we want to check something small
 
-class WebsiteChecker:
-	
-	#
-	# constuctor with arguments
-	#
-	# incoming parameters:
-	# websites - list of lists (website, frequency (in ms), download_content (0 or 1))
-	# for example - [['google.com', 300, 0], ['localhost', 600, 0]]
-	# connection - database connection
-	#
-	# logger field will be created in the constructor
-	# in this exercise for simplicity we would consider that class Connection already exists
-	def _init_(self, websites_list = [][], connection):
-		self.websites_list = websites_list.view()
-		self.connection = connection
-		self.cursor = self.connection.cursor()
-		self.logger = logging.getLogger()
-	
-	#
+#TODO: create interface for UrlUtils - could be reused by another code later
+#TODO: create interface for DatabaseUtils - could be reused by another code later
+
+class WebSiteCheckerUtils:
+
+    	def _init_(self, connection):
+        	self.connection = connection
+        	self.cursor = self.connection.cursor()
+    
+        #
 	# check_url_spelling
 	#
 	# incoming parameters:
@@ -79,8 +68,8 @@ class WebsiteChecker:
 			downloaded_content = os.system("curl " + url)
 		
 		return (timestamp, status_code_returned, downloaded_content)
-	
-	#
+    
+    	#
 	# retrieve_url_id_in_websites_list
 	#
 	# incoming parameters:
@@ -112,6 +101,32 @@ class WebsiteChecker:
 			url_id = records[0]
 			
 		return url_id
+
+#TODO: ideally I need a separation between UrlTools, DatabaseTools and WebsiteChecker
+#but this is beginning to be a little bit heavy ...
+
+#for logging
+import logging
+
+# class WebsiteChecker containts the methods
+# to perform periodical download of websites information
+
+class WebsiteChecker:
+	
+	#
+	# constructor with arguments
+	#
+	# incoming parameters:
+	# websites - list of lists (website, frequency (in ms), download_content (0 or 1))
+	# for example - [['google.com', 300, 0], ['localhost', 600, 0]]
+	# connection - database connection
+	#
+	# logger field will be created in the constructor
+	# in this exercise for simplicity we would consider that class Connection already exists
+	def _init_(self, websites_list = [][], connection):
+		self.websites_list = websites_list.view()
+		self.wbutils = WebsiteCheckerUtils(connection)
+		self.logger = logging.getLogger()
 		
 	#
 	# download_website_stats
@@ -139,8 +154,8 @@ class WebsiteChecker:
 		# TODO: add exceptions
 		sql_insert = "INSERT INTO website_stats (website_id, timestamp, http_response_time, status_code_returned) VALUES (%s, %s, %s, %s)"
 		tuple = (website_id, timestamp, http_response_time, status_code_returned)
-		self.cursor.execute(sql_insert, tuple)
-		self.connection.commit()
+		self.wbutils.cursor.execute(sql_insert, tuple)
+		self.wbutils.connection.commit()
 
 		logger.info("Stats for "+ url + " have been inserted at " + datetime.fromtimestamp(timestamp))
 		
@@ -150,8 +165,8 @@ class WebsiteChecker:
 		
 			sql_insert = "INSERT INTO website_content (website_id, timestamp, downloaded_content) VALUES (%s, %s, %s)"
 			tuple = (website_id, timestamp, downloaded_content)
-			self.cursor.execute(sql_insert, tuple)
-			self.connection.commit()
+			self.wbutils.cursor.execute(sql_insert, tuple)
+			self.wbutils.connection.commit()
 
 			logger.info("Content for "+ url + " has been downloaded at " + datetime.fromtimestamp(timestamp))
 			
@@ -162,7 +177,7 @@ class WebsiteChecker:
 	#
 	def download_stats_for_multiple_websites():
 		
-		for website in self.websites_list:
+		for website in websites_list:
 			download_website_stats(website[0], website[1], website[2])
 
 	#
