@@ -9,8 +9,8 @@ import WebsiteChecker
 
 class TestWebChecker(unittest.TestCase) {
 	
-	def _init_(self):
-        connection = sqlite3.connect("our-database.db")
+    def _init_(self):
+    	connection = sqlite3.connect("our-database.db")
 	
     #
     # url spelling true tests
