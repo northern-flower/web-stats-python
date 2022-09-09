@@ -9,11 +9,11 @@ import WebsiteChecker
 
 class TestWebChecker(unittest.TestCase) {
 	
-	def setUp(self):
+    def setUp(self):
         connection = sqlite3.connect("our-database.db")
         wbutils = WebsiteChecker(connection)
-	
-	#
+    
+    #
     # url spelling true tests
     #
     
@@ -117,10 +117,10 @@ class TestWebCheckerDatabase(MockDB):
     
     def test_db_websites_insert_and_delete(self):
         with self.mock_db_config:
-			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+	    self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
                             (`https://test.com/`)"""), True, """First time insert of https://test.com/ into `websites` table should work""")
             
-			#
+	    #
             #TODO (optionally): make a select here to check if only 1 record has been inserted
             #
             
@@ -129,7 +129,7 @@ class TestWebCheckerDatabase(MockDB):
 			
 			self.assertEqual(utils.db_write("""DELETE FROM `websites` where `primary_url` = `https://test.com/`"""), True, """First time delete of https://test.com/ from `websites` table should work""")
             
-			#
+	    #
             #TODO (optionally): make a select here to check if only 1 record has been deleted
             #
             
