@@ -12,12 +12,13 @@ from ping3 import ping
 #TODO: create interface for DatabaseUtils - could be reused by another code later
 
 class WebSiteCheckerUtils:
-
-    	def _init_(self, connection):
-        	self.connection = connection
-        	self.cursor = self.connection.cursor()
+	
+    #TODO: initialise
+    def _init_(self, connection):
+        self.connection = connection
+        self.cursor = self.connection.cursor()
     
-        #
+    #
 	# check_url_spelling
 	#
 	# incoming parameters:
@@ -69,7 +70,7 @@ class WebSiteCheckerUtils:
 		
 		return (timestamp, status_code_returned, downloaded_content)
     
-    	#
+    #
 	# retrieve_url_id_in_websites_list
 	#
 	# incoming parameters:
@@ -80,12 +81,15 @@ class WebSiteCheckerUtils:
 	def retrieve_url_id_in_websites_list(url):
 		
 		# find if url already exists in the database of urls
-		# TODO: add exceptions
-		sql_select = "SELECT website_id from websites where primary_url = %s"
-		tuple = (url)
-		self.cursor.execute(sql_select, tuple)
-		records = self.cursor.fetchall()
-		
+		try:
+            sql_select = "SELECT website_id from websites where primary_url = %s"
+            tuple = (url)
+            self.cursor.execute(sql_select, tuple)
+            records = self.cursor.fetchall()
+        except (MySQLdb.Error, MySQLdb.Warning) as e:
+            logger.error(e)
+            return None
+            
 		if self.cursor.rowcount == 0:
 			# write new url_id into the database
 			# TODO: add exceptions
@@ -151,35 +155,38 @@ class WebsiteChecker:
 		website_id = retrieve_url_id_in_websites_list(url)
 		
 		# write result into website_stats database
-		# TODO: add exceptions
-		sql_insert = "INSERT INTO website_stats (website_id, timestamp, http_response_time, status_code_returned) VALUES (%s, %s, %s, %s)"
-		tuple = (website_id, timestamp, http_response_time, status_code_returned)
-		self.wbutils.cursor.execute(sql_insert, tuple)
-		self.wbutils.connection.commit()
-
-		logger.info("Stats for "+ url + " have been inserted at " + datetime.fromtimestamp(timestamp))
+		try:
+            sql_insert = "INSERT INTO website_stats (website_id, timestamp, http_response_time, status_code_returned) VALUES (%s, %s, %s, %s)"
+            tuple = (website_id, timestamp, http_response_time, status_code_returned)
+            self.wbutils.cursor.execute(sql_insert, tuple)
+        except (MySQLdb.Error, MySQLdb.Warning) as e:
+            logger.error(e)
+            return False
+        finally:
+            self.wbutils.connection.commit()
+            logger.info("Stats for "+ url + " have been inserted at " + datetime.fromtimestamp(timestamp))
 		
 		# write result into website_content database
-		# TODO: add exceptions
 		if download_content:
 		
-			sql_insert = "INSERT INTO website_content (website_id, timestamp, downloaded_content) VALUES (%s, %s, %s)"
-			tuple = (website_id, timestamp, downloaded_content)
-			self.wbutils.cursor.execute(sql_insert, tuple)
-			self.wbutils.connection.commit()
-
-			logger.info("Content for "+ url + " has been downloaded at " + datetime.fromtimestamp(timestamp))
+			try:
+                sql_insert = "INSERT INTO website_content (website_id, timestamp, downloaded_content) VALUES (%s, %s, %s)"
+                tuple = (website_id, timestamp, downloaded_content)
+                self.wbutils.cursor.execute(sql_insert, tuple)
+            except (MySQLdb.Error, MySQLdb.Warning) as e:
+                logger.error(e)
+                return False
+            finally:
+                self.wbutils.connection.commit()
+                logger.info("Content for "+ url + " has been downloaded at " + datetime.fromtimestamp(timestamp))
 			
 		return true
 	
-	#
-	# download_stats_for_multiple_websites
-	#
-	def download_stats_for_multiple_websites():
-		
-		for website in websites_list:
-			download_website_stats(website[0], website[1], website[2])
-
+    #
+    # TODO:
+    # create a method to check website periodically and during a certain time
+    #
+    
 	#
 	# check website status periodically
 	#
@@ -193,7 +200,23 @@ class WebsiteChecker:
 				logger.error('*download_website_stats_periodically* failed %s ' % (str(e)))
 			pass
 	
-	# def download_website_stats_periodically_start(url, frequency, download_content)
+    #
+	# download_stats_for_multiple_websites
+	#
+	def download_stats_for_multiple_websites():
+		
+		for website in websites_list:
+			download_website_stats(website[0], website[1], website[2])
+    
+    #
+	# download_stats_for_multiple_websites
+	#
+    def download_stats_for_multiple_websites_periodically():
+        for website in websites_list:
+			download_website_stats_periodically(website[0], website[1], website[2])
+    
+    
+    # def download_website_stats_periodically_start(url, frequency, download_content)
 	# TODO: ADD corresponding crontab for this url based on frequency
 	
 	# def download_website_stats_periodically_update(url, frequency, download_content)
