@@ -16,12 +16,12 @@ DOWNLOAD_STATS_PERFORMANCE = 10000
 
 class TestWebChecker(unittest.TestCase) {
 	
-	def setUp(self):
-        connection = sqlite3.connect("our-database.db")
+    def setUp(self):
+    	connection = sqlite3.connect("our-database.db")
         cursor = connection.cursor()
         wbutils = WebsiteChecker(connection)
 	
-	#
+    #
     # url spelling true tests
     #
     
@@ -74,11 +74,11 @@ class TestWebChecker(unittest.TestCase) {
     #check that the content is downloaded / not downloaded depending on the chosen option
     #check the log file
     def test_download_website_stats_google(self):
-		websitechecker = WebsiteChecker(["google.com", 500, 0], connection)
+	websitechecker = WebsiteChecker(["google.com", 500, 0], connection)
         
         start = time.time()
         websitechecker_download_status = websitechecker.download_website_stats()
-		end = time.time()
+	end = time.time()
         self.assertEqual(websitechecker_download_status, true, "Stats for google.com should be downloaded")
         self.assertEqual(end - start < DOWNLOAD_STATS_PERFORMANCE, true, "Stats for google.com should be downloaded under < " + DOWNLOAD_STATS_PERFORMANCE + " ms")
         
@@ -113,12 +113,12 @@ class TestWebChecker(unittest.TestCase) {
         #optionally - check the log file
         #logger.info("Stats for "+ url + " have been inserted at " + datetime.fromtimestamp(timestamp))
 	
-	def test_download_website_stats_localhost(self):
-		websitechecker = WebsiteChecker(["localhost", 300, 1], connection)
+def test_download_website_stats_localhost(self):
+	websitechecker = WebsiteChecker(["localhost", 300, 1], connection)
         
         start = time.time()
         websitechecker_download_status = websitechecker.download_website_stats()
-		end = time.time()
+	end = time.time()
         self.assertEqual(websitechecker_download_status, true, "Stats for localhost should be downloaded")
         self.assertEqual(end - start < DOWNLOAD_STATS_PERFORMANCE, true, "Stats for localhost should be downloaded under < " + DOWNLOAD_STATS_PERFORMANCE + " ms")
         
@@ -154,12 +154,12 @@ class TestWebChecker(unittest.TestCase) {
         #optionally - check the log file
         #logger.info("Content for "+ url + " has been downloaded at " + datetime.fromtimestamp(timestamp))
 	
-	def test_download_website_stats_broken_url_format(self):
-		websitechecker = WebsiteChecker(["localhost.", 30, 0], connection)
+def test_download_website_stats_broken_url_format(self):
+	websitechecker = WebsiteChecker(["localhost.", 30, 0], connection)
 
         start = time.time()
         websitechecker_download_status = websitechecker.download_website_stats()
-		end = time.time()
+	end = time.time()
         self.assertEqual(websitechecker_download_status, False, "Stats for localhost. should NOT be downloaded")
         self.assertEqual(end - start < DOWNLOAD_STATS_PERFORMANCE, true, "Status of the stats for localhost. should be obtained under < " + DOWNLOAD_STATS_PERFORMANCE + " ms")
         
@@ -171,16 +171,15 @@ class TestWebChecker(unittest.TestCase) {
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0]['primary_url']) == 'localhost.', False)
         
-        
         #optionally - check the log file
         #logger.warning(url + " does not pass the spelling check")
 	
-	def test_download_website_stats_broken_url(self):
-		websitechecker = WebsiteChecker(["https://console.aiven.io/signup.html", 60, 1], connection)
+def test_download_website_stats_broken_url(self):
+	websitechecker = WebsiteChecker(["https://console.aiven.io/signup.html", 60, 1], connection)
         
         start = time.time()
         websitechecker_download_status = websitechecker.download_website_stats()
-		end = time.time()
+	end = time.time()
         self.assertEqual(websitechecker_download_status, true, "Stats for https://console.aiven.io/signup.html should be downloaded")
         self.assertEqual(end - start < DOWNLOAD_STATS_PERFORMANCE, true, "Stats for https://console.aiven.io/signup.html should be downloaded under < " + DOWNLOAD_STATS_PERFORMANCE + " ms")
         
@@ -237,7 +236,7 @@ BLOB_DELETE_PERFORMANCE = 1000
 class TestWebCheckerDatabase(MockDB):
 	
     def _init_(self):
-		connection = sqlite3.connect("our-database.db")
+	connection = sqlite3.connect("our-database.db")
     
     # test insert and delete for 'websites' table
     def test_db_websites_insert_and_delete(self):
