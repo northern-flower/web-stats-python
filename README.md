@@ -30,13 +30,15 @@ websites:
 - primary_url - varchar(256) - limit url length to avoid crawler trap
 
 website_stats:
-- website_id - integer
+- id, integer, autoincrement
+- website_id - integer, FK to websites->website_id
 - timestamp - timestamp
 - http_response_time (ms) - integer
 - status_code_returned - integer, probably with constraints (100-600)
 
 website_content:
-- website_id - integer
+- id, integer, autoincrement
+- website_id - integer, FK to websites->website_id
 - timestamp - timestamp
 - downloaded_content - BLOB
 
@@ -45,7 +47,8 @@ Ideas for tests:
 
 - ping localhost
 - ping google.com (but it can be down ...)
-- ping non existing website/ url address for example - https://console.aiven.io/signup.html
+- ping website with a known (not 200 status code), for example - https://console.aiven.io/signup.html (404)
+- ping non existing website with correct url address for example - https://digg.com/2019/WHAT-earth-WOULD-look-like-if-all-the-oceans-were-drained-visualized (404)
 - ping wrongly formatted website (....,com for example) - should return false or exception, 'your url is not well formatted'
 
 Additional tests:
