@@ -241,63 +241,62 @@ class TestWebCheckerDatabase(MockDB):
     # test insert and delete for 'websites' table
     def test_db_websites_insert_and_delete(self):
         with self.mock_db_config:
-			self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+		self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
                             (`https://test.com/`)"""), True, """First time insert of https://test.com/ into `websites` table should work""")
             
-            self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
+            	self.assertEqual(utils.db_write("""INSERT INTO `websites` (`primary_url`) VALUES
                             (`https://test.com/`)"""), False, """Second time insert of https://test.com/ into `websites` table should NOT work""")
 			
-			self.assertEqual(utils.db_write("""DELETE FROM `websites` where `primary_url` = `https://test.com/`"""), True, """First time delete of https://test.com/ from `websites` table should work""")
+		self.assertEqual(utils.db_write("""DELETE FROM `websites` where `primary_url` = `https://test.com/`"""), True, """First time delete of https://test.com/ from `websites` table should work""")
             
-            self.assertEqual(utils.db_write("""DELETE FROM `websites` where `primary_url` = `https://test.com/`"""), False, """Second time delete of https://test.com/ from `websites` table should NOT work""")
+            	self.assertEqual(utils.db_write("""DELETE FROM `websites` where `primary_url` = `https://test.com/`"""), False, """Second time delete of https://test.com/ from `websites` table should NOT work""")
 	
     # test insert and delete for 'website_stats' table
     def test_db_website_stats_insert_and_delete(self):
         with self.mock_db_config:
-            self.assertEqual(utils.db_write("""INSERT INTO `website_stats` (`website_id`, `timestamp`, `http_response_time`, `status_code_returned`) VALUES
+            	self.assertEqual(utils.db_write("""INSERT INTO `website_stats` (`website_id`, `timestamp`, `http_response_time`, `status_code_returned`) VALUES
                             (1, 1594819641.9622827, 32, 0)"""), True, """First time insert of website_id = 1 (for timestamp in the past) into `website_stats` table should work""")
             
-			self.assertEqual(utils.db_write("""INSERT INTO `website_stats` (`website_id`, `timestamp`, `http_response_time`, `status_code_returned`) VALUES
+		self.assertEqual(utils.db_write("""INSERT INTO `website_stats` (`website_id`, `timestamp`, `http_response_time`, `status_code_returned`) VALUES
                             (1, 1594819641.9622827, 545, 23)"""), False, """Second insertion for `website_stats` table should not be possible for the same `website_id` and `timestamp`""")
 			
-			self.assertEqual(utils.db_write("""DELETE FROM `website_stats` where website_id = 1 and timestamp = 1594819641.9622827""", True, """First time delete of website_id = 1 (in the past) from `website_stats` table should work""")
+		self.assertEqual(utils.db_write("""DELETE FROM `website_stats` where website_id = 1 and timestamp = 1594819641.9622827""", True, """First time delete of website_id = 1 (in the past) from `website_stats` table should work""")
             
-			self.assertEqual(utils.db_write("""DELETE FROM `website_stats` where website_id = 1 and timestamp = 1594819641.9622827""", False, """Second time delete of website_id = 1 (in the past) from `website_stats` table should NOT work""")
+		self.assertEqual(utils.db_write("""DELETE FROM `website_stats` where website_id = 1 and timestamp = 1594819641.9622827""", False, """Second time delete of website_id = 1 (in the past) from `website_stats` table should NOT work""")
     
     # test insert and delete for 'website_content' table
-	# additional tests for insertion performace of the table (as it contains BLOB)
-	def test_db_website_content_insert_and_delete(self):
+    # additional tests for insertion performace of the table (as it contains BLOB)
+    def test_db_website_content_insert_and_delete(self):
         with self.mock_db_config:
-			
-            self.assertEqual(utils.db_write("""INSERT INTO `website_content` (`website_id`, `timestamp`, `downloaded_content`) VALUES
+		self.assertEqual(utils.db_write("""INSERT INTO `website_content` (`website_id`, `timestamp`, `downloaded_content`) VALUES
                             (1, 1662890978.4920807, '<html></html>')"""), True, """First time insert of website_id = 1 (for timestamp in the past) into `website_content` table should work""")
             
-			self.assertEqual(utils.db_write("""INSERT INTO `website_content` (`website_id`, `timestamp`, `downloaded_content`) VALUES
+		self.assertEqual(utils.db_write("""INSERT INTO `website_content` (`website_id`, `timestamp`, `downloaded_content`) VALUES
                             (1, 1662890978.4920807, '')"""), False, """Second insertion for `website_content` table should not be possible for the same `website_id` and `timestamp`""")
 			
-			self.assertEqual(utils.db_write("""DELETE FROM `website_content` where website_id = 1 and timestamp = 1662890978.4920807""", True, """First time delete of website_id = 1 (in the past) from `website_content` table should work""")
+		self.assertEqual(utils.db_write("""DELETE FROM `website_content` where website_id = 1 and timestamp = 1662890978.4920807""", True, """First time delete of website_id = 1 (in the past) from `website_content` table should work""")
             
-			self.assertEqual(utils.db_write("""DELETE FROM `website_content` where website_id = 1 and timestamp = 1662890978.4920807""", False, """Second time delete of website_id = 1 (in the past) from `website_content` table should NOT work""")
+		self.assertEqual(utils.db_write("""DELETE FROM `website_content` where website_id = 1 and timestamp = 1662890978.4920807""", False, """Second time delete of website_id = 1 (in the past) from `website_content` table should NOT work""")
             
-            #read a very large html from a file
-            f = open("very_large_html.html", "r")
+            	#read a very large html from a file
+            	f = open("very_large_html.html", "r")
             
-            # BLOB insert performance
-            start = time.time()
+            	# BLOB insert performance
+            	start = time.time()
             
-            self.assertEqual(utils.db_write("""INSERT INTO `website_content` (`website_id`, `timestamp`, `downloaded_content`) VALUES
+            	self.assertEqual(utils.db_write("""INSERT INTO `website_content` (`website_id`, `timestamp`, `downloaded_content`) VALUES
                             (1, 1662890978.4920807, """ + f +""")"""), True, """(BLOB) First time insert of website_id = 1 (for timestamp in the past) into `website_content` table should work""" )
             
-            end = time.time()
+            	end = time.time()
 			
-            self.assertEqual(end-start < BLOB_INSERT_PERFORMANCE, true, "Insert of BIG BLOB into `website_content` table should be possible under < " + BLOB_INSERT_PERFORMANCE + "ms")
+            	self.assertEqual(end-start < BLOB_INSERT_PERFORMANCE, true, "Insert of BIG BLOB into `website_content` table should be possible under < " + BLOB_INSERT_PERFORMANCE + "ms")
             
-            # BLOB delete performance
-            start = time.time()
+            	# BLOB delete performance
+            	start = time.time()
             
-            self.assertEqual(utils.db_write("""DELETE FROM `website_content` where website_id = 1 and timestamp = 1662890978.4920807""", True, """(BLOB) First time delete of website_id = 1 (in the past) from `website_content` table should work""")
+            	self.assertEqual(utils.db_write("""DELETE FROM `website_content` where website_id = 1 and timestamp = 1662890978.4920807""", True, """(BLOB) First time delete of website_id = 1 (in the past) from `website_content` table should work""")
             
-            end = time.time()
+            	end = time.time()
 			
-            self.assertEqual(end-start < BLOB_DELETE_PERFORMANCE, true, "")
+            	self.assertEqual(end-start < BLOB_DELETE_PERFORMANCE, true, "")
             
