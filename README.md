@@ -1,5 +1,9 @@
 # web-stats-python
 
+DISCLAIMER:
+
+Please note that this repository is for illustration purpose only and doesn not imply that the code compiles.
+
 TASK:
 
 The website checker should perform the checks periodically and collect the HTTP
@@ -7,21 +11,10 @@ response time, status code returned, as well as optionally checking the returned
 page contents for a regexp pattern that is expected to be found on the page.
 
 
-Things to consider:
+Limitations:
 
-- is page content established for all the websites or can be 0 for 1 website and 1 for another (actually i considered that there could be different 'frequency' and 'downloaded_content' options for every website)
-- how many websites to store (if many - consider distributed system and hash)
-- for how long the stats should be kept (if for too long - consider distributed system as well, automatic archiving, etc)
-- at which frequency to check whether the website is up or down (and not be blacklisted) - may be put it as a parameter
-
-- how to test your code - if the website is down or not (the testing website can also be unexpectedly down or up)
-- you may not have a right to access the website ..
-
-Simple algorithm to use that comes immediately to my mind:
-- ping to check if that website is alive (ideally 2 sources minimum should confirm that)
-Ping is fast operation. Optionally we would like to get the content of the website too but it would take more time.
-- curl the stats and (optionally) the content
-
+- too many websites to check would mean a distributed system would be needed, with hash table managing the keys for their access
+- too frequent checks could black list the server from which we are performing them
 
 Database structure:
 
